@@ -1,0 +1,1508 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dynamo DGD Configuration Builder</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #eef3e8;
+      --surface: #ffffff;
+      --surface-strong: #f2f6ec;
+      --ink: #121612;
+      --muted: #596455;
+      --line: #d5dec9;
+      --line-strong: #aebc9d;
+      --accent: #76b900;
+      --accent-strong: #315f00;
+      --accent-soft: #e7f5d3;
+      --warn: #a15c18;
+      --warn-soft: #fff0dc;
+      --danger: #a3333d;
+      --danger-soft: #fde5e7;
+      --ok: #2f7d32;
+      --ok-soft: #e4f3e5;
+      --shadow: 0 12px 34px rgba(24, 35, 46, 0.08);
+      --radius: 8px;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-width: 320px;
+      background: var(--bg);
+      color: var(--ink);
+    }
+
+    button,
+    input,
+    select {
+      font: inherit;
+    }
+
+    button {
+      border: 0;
+      cursor: pointer;
+    }
+
+    .shell {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 18px 24px;
+      background: rgba(11, 15, 10, 0.98);
+      border-bottom: 3px solid var(--accent);
+      backdrop-filter: blur(10px);
+    }
+
+    .brand {
+      min-width: 0;
+    }
+
+    h1,
+    h2,
+    h3,
+    p {
+      margin: 0;
+    }
+
+    h1 {
+      font-size: clamp(1.2rem, 2vw, 1.65rem);
+      line-height: 1.15;
+      letter-spacing: 0;
+      color: #ffffff;
+    }
+
+    .subtitle {
+      margin-top: 4px;
+      color: #c9d6bc;
+      font-size: 0.9rem;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+
+    .button,
+    .file-button {
+      display: inline-flex;
+      min-height: 38px;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border: 1px solid var(--line-strong);
+      border-radius: 6px;
+      background: var(--surface);
+      color: var(--ink);
+      font-weight: 650;
+      white-space: nowrap;
+    }
+
+    .button.primary {
+      border-color: var(--accent);
+      background: var(--accent);
+      color: #0b0f0a;
+    }
+
+    .topbar .button {
+      border-color: rgba(118, 185, 0, 0.65);
+      background: #171d15;
+      color: #ffffff;
+    }
+
+    .topbar .button:hover {
+      background: #24301c;
+    }
+
+    .button:focus-visible,
+    .file-button:focus-visible,
+    input:focus-visible,
+    select:focus-visible {
+      outline: 3px solid rgba(18, 107, 99, 0.24);
+      outline-offset: 2px;
+    }
+
+    .hidden-input {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+    }
+
+    .layout {
+      width: 100%;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+      padding: 18px 24px 28px;
+      align-items: start;
+    }
+
+    .panel {
+      min-width: 0;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 16px 16px 12px;
+      border-bottom: 1px solid var(--line);
+      background: linear-gradient(180deg, #ffffff, #f7faf3);
+    }
+
+    .panel-header h2 {
+      font-size: 0.98rem;
+      letter-spacing: 0;
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      min-height: 24px;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent-strong);
+      font-size: 0.78rem;
+      font-weight: 700;
+    }
+
+    .form-panel {
+      overflow: hidden;
+    }
+
+    .snapshot-section {
+      border-bottom: 1px solid var(--line);
+    }
+
+    form {
+      display: block;
+    }
+
+    .form-section {
+      padding: 18px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .form-section:last-child {
+      border-bottom: 0;
+    }
+
+    .section-title {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .section-title h2 {
+      font-size: 1.05rem;
+      line-height: 1.25;
+      letter-spacing: 0;
+    }
+
+    .section-title span {
+      color: var(--muted);
+      font-size: 0.84rem;
+      font-weight: 650;
+      white-space: nowrap;
+    }
+
+    .field-grid {
+      display: grid;
+      grid-template-columns: repeat(12, minmax(0, 1fr));
+      gap: 14px;
+      align-items: start;
+    }
+
+    .field {
+      grid-column: span 6;
+      min-width: 0;
+    }
+
+    .field.full {
+      grid-column: 1 / -1;
+    }
+
+    .field.third {
+      grid-column: span 4;
+    }
+
+    .field.quarter {
+      grid-column: span 3;
+    }
+
+    label,
+    .field-label {
+      display: block;
+      margin-bottom: 6px;
+      color: var(--muted);
+      font-size: 0.82rem;
+      font-weight: 700;
+    }
+
+    input[type="text"],
+    input[type="number"],
+    select {
+      width: 100%;
+      min-height: 40px;
+      border: 1px solid var(--line-strong);
+      border-radius: 6px;
+      background: var(--surface);
+      color: var(--ink);
+      padding: 8px 10px;
+    }
+
+    input[type="number"] {
+      appearance: textfield;
+    }
+
+    input[readonly] {
+      background: var(--surface-strong);
+      color: var(--muted);
+    }
+
+    input.invalid-field {
+      border-color: var(--danger);
+      background: var(--danger-soft);
+    }
+
+    .segmented {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .segmented label {
+      margin: 0;
+    }
+
+    .segmented input {
+      position: absolute;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .segmented span {
+      display: flex;
+      min-height: 42px;
+      align-items: center;
+      justify-content: center;
+      padding: 8px 10px;
+      border: 1px solid var(--line-strong);
+      border-radius: 6px;
+      background: var(--surface);
+      color: var(--ink);
+      font-weight: 750;
+      text-align: center;
+    }
+
+    .segmented input:checked + span {
+      border-color: var(--accent);
+      background: var(--accent-soft);
+      color: var(--accent-strong);
+    }
+
+    .switch-field {
+      display: flex;
+      min-height: 40px;
+      align-items: center;
+      gap: 10px;
+      padding-top: 23px;
+    }
+
+    .switch-field input {
+      width: 18px;
+      height: 18px;
+      accent-color: var(--accent);
+    }
+
+    .switch-field label {
+      margin: 0;
+      color: var(--ink);
+    }
+
+    .branch-hidden,
+    .conditional-hidden {
+      display: none;
+    }
+
+    .validation {
+      margin-top: 8px;
+      min-height: 18px;
+      color: var(--danger);
+      font-size: 0.78rem;
+      font-weight: 650;
+    }
+
+    .summary-panel {
+      min-width: 0;
+      align-self: start;
+      position: sticky;
+      top: 92px;
+      display: grid;
+      gap: 18px;
+      background: transparent;
+      border: 0;
+      box-shadow: none;
+    }
+
+    .topology-block {
+      min-width: 0;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      padding: 14px;
+    }
+
+    .metric {
+      min-height: 74px;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: var(--surface-strong);
+    }
+
+    .metric-label {
+      color: var(--muted);
+      font-size: 0.76rem;
+      font-weight: 750;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .metric-value {
+      margin-top: 8px;
+      font-size: 1.55rem;
+      line-height: 1;
+      font-weight: 800;
+    }
+
+    .table-scroll {
+      width: 100%;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .component-table {
+      width: calc(100% - 28px);
+      min-width: 680px;
+      margin: 0 14px 14px;
+      border-collapse: collapse;
+      font-size: 0.86rem;
+    }
+
+    .component-table th,
+    .component-table td {
+      padding: 9px 8px;
+      border-top: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+    }
+
+    .component-table th {
+      color: var(--muted);
+      font-size: 0.76rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .component-table td:last-child,
+    .component-table th:last-child {
+      text-align: right;
+    }
+
+    .message {
+      margin: 0 14px 14px;
+      padding: 10px 12px;
+      border-radius: 6px;
+      background: var(--ok-soft);
+      color: var(--ok);
+      font-size: 0.84rem;
+      font-weight: 700;
+    }
+
+    .message.warn {
+      background: var(--warn-soft);
+      color: var(--warn);
+    }
+
+    .message.danger {
+      background: var(--danger-soft);
+      color: var(--danger);
+    }
+
+    .topology-view {
+      display: grid;
+      gap: 24px;
+      padding: 18px;
+    }
+
+    .topology-set,
+    .scaling-group {
+      min-width: 0;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fbfcfd;
+      padding: 22px;
+    }
+
+    .topology-set {
+      display: grid;
+      gap: 30px;
+      border-color: #9fca65;
+      background: linear-gradient(180deg, #fbfdf7, #ffffff);
+    }
+
+    .topology-set.grove-disabled {
+      border-color: #b8c0ad;
+      background: linear-gradient(180deg, #f7f9f3, #ffffff);
+    }
+
+    .scaling-group {
+      border-style: dashed;
+      background: #ffffff;
+    }
+
+    .topology-title {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 16px;
+      font-size: 1.02rem;
+      font-weight: 800;
+    }
+
+    .topology-title span {
+      color: var(--muted);
+      font-size: 0.76rem;
+      font-weight: 750;
+      white-space: nowrap;
+    }
+
+    .replica-row {
+      display: grid;
+      gap: 14px;
+      padding: 16px 0;
+      border-top: 1px dotted var(--line-strong);
+    }
+
+    .replica-row:first-of-type {
+      border-top: 0;
+      padding-top: 0;
+    }
+
+    .replica-label {
+      color: var(--muted);
+      font-size: 0.76rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .podclique-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+    }
+
+    .podclique-card {
+      min-width: 0;
+      border: 1px solid var(--line-strong);
+      border-radius: 7px;
+      padding: 18px;
+      background: var(--surface-strong);
+    }
+
+    .podclique-card.frontend {
+      background: #e9f7d6;
+    }
+
+    .podclique-card.prefill-leader {
+      background: #dff0c2;
+    }
+
+    .podclique-card.prefill-worker {
+      background: #eef4e4;
+    }
+
+    .podclique-card.decode-leader {
+      background: #e0ead8;
+    }
+
+    .podclique-card.decode-worker {
+      background: #f0f2f4;
+    }
+
+    .podclique-card.direct-pods {
+      background: #f4f7ef;
+      border-style: dashed;
+    }
+
+    .podclique-name {
+      font-size: 1rem;
+      font-weight: 800;
+    }
+
+    .podclique-meta {
+      margin-top: 5px;
+      color: var(--muted);
+      font-size: 0.82rem;
+      font-weight: 700;
+    }
+
+    .pod-boxes {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .pod-box {
+      display: inline-flex;
+      min-width: 64px;
+      height: 50px;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid rgba(18, 22, 18, 0.42);
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.7);
+      color: var(--ink);
+      font-size: 0.9rem;
+      font-weight: 800;
+    }
+
+    .pod-box.more {
+      min-width: 42px;
+      background: rgba(23, 32, 42, 0.08);
+    }
+
+    .saved-state {
+      min-width: 74px;
+      text-align: right;
+      color: var(--muted);
+      font-size: 0.78rem;
+      font-weight: 700;
+    }
+
+    @media (max-width: 1120px) {
+      .layout {
+        grid-template-columns: minmax(0, 1fr);
+      }
+
+      .summary-panel {
+        position: static;
+      }
+    }
+
+    @media (max-width: 720px) {
+      .topbar {
+        align-items: flex-start;
+        flex-direction: column;
+        padding: 16px;
+      }
+
+      .actions {
+        justify-content: flex-start;
+        width: 100%;
+      }
+
+      .button,
+      .file-button {
+        flex: 1 1 142px;
+      }
+
+      .layout {
+        padding: 14px;
+      }
+
+      .form-section {
+        padding: 16px;
+      }
+
+      .field,
+      .field.third,
+      .field.quarter {
+        grid-column: 1 / -1;
+      }
+
+      .segmented {
+        grid-template-columns: 1fr;
+      }
+
+      .metrics {
+        grid-template-columns: 1fr;
+      }
+
+      .podclique-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header class="topbar">
+      <div class="brand">
+        <h1>NVIDIA Dynamo DGD Configuration Builder</h1>
+        <p class="subtitle">NVIDIA deployment sizing</p>
+      </div>
+      <div class="actions">
+        <button class="button" id="resetForm" type="button">Reset</button>
+      </div>
+    </header>
+
+    <div class="layout">
+      <main class="panel form-panel">
+        <section class="snapshot-section">
+          <div class="panel-header">
+            <h2>Configuration Snapshot</h2>
+            <span class="saved-state" id="savedState">Saved</span>
+          </div>
+          <div class="metrics">
+            <div class="metric">
+              <div class="metric-label">Branch</div>
+              <div class="metric-value" id="metricBranch">Agg</div>
+            </div>
+            <div class="metric">
+              <div class="metric-label">Grove</div>
+              <div class="metric-value" id="metricGrove">Enabled</div>
+            </div>
+            <div class="metric">
+              <div class="metric-label">GPU estimate</div>
+              <div class="metric-value" id="metricGpu">1</div>
+            </div>
+            <div class="metric">
+              <div class="metric-label">Replicas</div>
+              <div class="metric-value" id="metricReplicas">2</div>
+            </div>
+            <div class="metric">
+              <div class="metric-label">Pod estimate</div>
+              <div class="metric-value" id="metricPods">2</div>
+            </div>
+          </div>
+          <div class="table-scroll">
+            <table class="component-table">
+              <thead>
+                <tr>
+                  <th>Component</th>
+                  <th>Replicas</th>
+                  <th>Pods</th>
+                  <th>Leader/group</th>
+                  <th>Worker/group</th>
+                  <th>GPU/pod</th>
+                  <th>Total GPU</th>
+                </tr>
+              </thead>
+              <tbody id="componentRows"></tbody>
+            </table>
+          </div>
+          <div class="message" id="validationMessage">Ready</div>
+        </section>
+
+        <form id="configForm" autocomplete="off">
+          <section class="form-section">
+            <div class="section-title">
+              <h2>DGD Configuration</h2>
+              <span>Required</span>
+            </div>
+            <div class="field-grid">
+              <div class="field full">
+                <div class="field-label">Grove mode</div>
+                <div class="segmented" role="radiogroup" aria-label="Grove mode">
+                  <label>
+                    <input type="radio" name="groveMode" value="enabled" checked>
+                    <span>Grove Enabled</span>
+                  </label>
+                  <label>
+                    <input type="radio" name="groveMode" value="disabled">
+                    <span>Grove Disabled</span>
+                  </label>
+                </div>
+              </div>
+              <div class="field full">
+                <div class="field-label">Deployment type</div>
+                <div class="segmented" role="radiogroup" aria-label="Deployment type">
+                  <label>
+                    <input type="radio" name="deploymentType" value="agg" checked>
+                    <span>Agg Deployment</span>
+                  </label>
+                  <label>
+                    <input type="radio" name="deploymentType" value="disagg">
+                    <span>Disagg Deployment</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="form-section" data-component-section="frontend">
+            <div class="section-title">
+              <h2>Frontend Configuration</h2>
+              <span>Shared</span>
+            </div>
+            <div class="field-grid">
+              <div class="field">
+                <label for="frontendReplicas">Frontend replicas</label>
+                <input id="frontendReplicas" name="frontendReplicas" type="number" min="0" step="1" value="1">
+              </div>
+            </div>
+          </section>
+
+          <section class="form-section" data-branch="agg" data-component-section="worker">
+            <div class="section-title">
+              <h2>Decode Configuration</h2>
+              <span>Agg</span>
+            </div>
+            <div class="field-grid">
+              <div class="field quarter">
+                <label for="workerReplicas">Decode replicas</label>
+                <input id="workerReplicas" name="workerReplicas" type="number" min="0" step="1" value="1">
+              </div>
+              <div class="field quarter">
+                <div class="switch-field">
+                  <input id="workerMultinode" name="workerMultinode" type="checkbox">
+                  <label for="workerMultinode">Multinode</label>
+                </div>
+              </div>
+              <div class="field quarter" data-multinode-count="worker">
+                <label for="workerMultinodeCount">Multinode count (leader + workers)</label>
+                <input id="workerMultinodeCount" name="workerMultinodeCount" type="number" min="2" step="1" inputmode="numeric" value="2">
+              </div>
+              <div class="field quarter">
+                <label for="workerTp">TP</label>
+                <input id="workerTp" name="workerTp" type="number" min="1" step="1" value="1">
+              </div>
+              <div class="field quarter">
+                <label for="workerPp">PP</label>
+                <input id="workerPp" name="workerPp" type="number" min="1" step="1" value="1">
+              </div>
+              <div class="field quarter">
+                <label for="workerGpuPerPod">GPU per pod (calculated)</label>
+                <input id="workerGpuPerPod" name="workerGpuPerPod" type="text" value="1" readonly>
+              </div>
+            </div>
+          </section>
+
+          <section class="form-section" data-branch="disagg" data-component-section="prefill">
+            <div class="section-title">
+              <h2>Prefill Configuration</h2>
+              <span>Disagg</span>
+            </div>
+            <div class="field-grid">
+              <div class="field quarter">
+                <label for="prefillReplicas">Prefill replicas</label>
+                <input id="prefillReplicas" name="prefillReplicas" type="number" min="0" step="1" value="1">
+              </div>
+              <div class="field quarter">
+                <div class="switch-field">
+                  <input id="prefillMultinode" name="prefillMultinode" type="checkbox">
+                  <label for="prefillMultinode">Multinode</label>
+                </div>
+              </div>
+              <div class="field quarter" data-multinode-count="prefill">
+                <label for="prefillMultinodeCount">Multinode count (leader + workers)</label>
+                <input id="prefillMultinodeCount" name="prefillMultinodeCount" type="number" min="2" step="1" inputmode="numeric" value="2">
+              </div>
+              <div class="field quarter">
+                <label for="prefillTp">TP</label>
+                <input id="prefillTp" name="prefillTp" type="number" min="1" step="1" value="1">
+              </div>
+              <div class="field quarter">
+                <label for="prefillPp">PP</label>
+                <input id="prefillPp" name="prefillPp" type="number" min="1" step="1" value="1">
+              </div>
+              <div class="field quarter">
+                <label for="prefillGpuPerPod">GPU per pod (calculated)</label>
+                <input id="prefillGpuPerPod" name="prefillGpuPerPod" type="text" value="1" readonly>
+              </div>
+            </div>
+          </section>
+
+          <section class="form-section" data-branch="disagg" data-component-section="decode">
+            <div class="section-title">
+              <h2>Decode Configuration</h2>
+              <span>Disagg</span>
+            </div>
+            <div class="field-grid">
+              <div class="field quarter">
+                <label for="decodeReplicas">Decode replicas</label>
+                <input id="decodeReplicas" name="decodeReplicas" type="number" min="0" step="1" value="1">
+              </div>
+              <div class="field quarter">
+                <div class="switch-field">
+                  <input id="decodeMultinode" name="decodeMultinode" type="checkbox">
+                  <label for="decodeMultinode">Multinode</label>
+                </div>
+              </div>
+              <div class="field quarter" data-multinode-count="decode">
+                <label for="decodeMultinodeCount">Multinode count (leader + workers)</label>
+                <input id="decodeMultinodeCount" name="decodeMultinodeCount" type="number" min="2" step="1" inputmode="numeric" value="2">
+              </div>
+              <div class="field quarter">
+                <label for="decodeTp">TP</label>
+                <input id="decodeTp" name="decodeTp" type="number" min="1" step="1" value="1">
+              </div>
+              <div class="field quarter">
+                <label for="decodePp">PP</label>
+                <input id="decodePp" name="decodePp" type="number" min="1" step="1" value="1">
+              </div>
+              <div class="field quarter">
+                <label for="decodeGpuPerPod">GPU per pod (calculated)</label>
+                <input id="decodeGpuPerPod" name="decodeGpuPerPod" type="text" value="1" readonly>
+              </div>
+            </div>
+          </section>
+        </form>
+      </main>
+
+      <aside class="summary-panel">
+        <section class="topology-block">
+          <div class="panel-header">
+            <h2>Topology View</h2>
+            <span class="status-pill" id="topologyBranch">Grove Enabled / Agg</span>
+          </div>
+          <div class="topology-view" id="topologyView"></div>
+        </section>
+
+      </aside>
+    </div>
+  </div>
+
+  <script>
+    const STORAGE_KEY = "dynamo-dgd-config-builder:v0.1";
+
+    const componentLabels = {
+      frontend: "Frontend",
+      worker: "Decode",
+      prefill: "Prefill",
+      decode: "Decode"
+    };
+
+    const integerFieldRules = {
+      frontendReplicas: { label: "Frontend replicas", min: 0 },
+      workerReplicas: { label: "Decode replicas", min: 0, active: () => deploymentType() === "agg" },
+      workerMultinodeCount: { label: "Decode multinode count", min: 2, active: () => deploymentType() === "agg" && getChecked("workerMultinode") },
+      workerTp: { label: "Decode TP", min: 1, active: () => deploymentType() === "agg" },
+      workerPp: { label: "Decode PP", min: 1, active: () => deploymentType() === "agg" },
+      prefillReplicas: { label: "Prefill replicas", min: 0, active: () => deploymentType() === "disagg" },
+      prefillMultinodeCount: { label: "Prefill multinode count", min: 2, active: () => deploymentType() === "disagg" && getChecked("prefillMultinode") },
+      prefillTp: { label: "Prefill TP", min: 1, active: () => deploymentType() === "disagg" },
+      prefillPp: { label: "Prefill PP", min: 1, active: () => deploymentType() === "disagg" },
+      decodeReplicas: { label: "Decode replicas", min: 0, active: () => deploymentType() === "disagg" },
+      decodeMultinodeCount: { label: "Decode multinode count", min: 2, active: () => deploymentType() === "disagg" && getChecked("decodeMultinode") },
+      decodeTp: { label: "Decode TP", min: 1, active: () => deploymentType() === "disagg" },
+      decodePp: { label: "Decode PP", min: 1, active: () => deploymentType() === "disagg" }
+    };
+
+    const form = document.getElementById("configForm");
+    const savedState = document.getElementById("savedState");
+    const validationMessage = document.getElementById("validationMessage");
+    const componentRows = document.getElementById("componentRows");
+    const topologyView = document.getElementById("topologyView");
+    const topologyBranch = document.getElementById("topologyBranch");
+
+    function getValue(id) {
+      const el = document.getElementById(id);
+      return el ? el.value.trim() : "";
+    }
+
+    function getChecked(id) {
+      const el = document.getElementById(id);
+      return Boolean(el && el.checked);
+    }
+
+    function setFieldInvalid(id, invalid) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.classList.toggle("invalid-field", invalid);
+      if (invalid) {
+        el.setAttribute("aria-invalid", "true");
+      } else {
+        el.removeAttribute("aria-invalid");
+      }
+    }
+
+    function clearValidationStyles() {
+      Object.keys(integerFieldRules).forEach((id) => setFieldInvalid(id, false));
+      ["workerGpuPerPod", "prefillGpuPerPod", "decodeGpuPerPod"].forEach((id) => setFieldInvalid(id, false));
+    }
+
+    function formatNumber(value) {
+      if (!Number.isFinite(value)) return "0";
+      if (Number.isInteger(value)) return String(value);
+      return String(Number(value.toFixed(4)));
+    }
+
+    function setField(id, value) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      if (el.type === "checkbox") {
+        el.checked = Boolean(value);
+      } else {
+        el.value = value ?? "";
+      }
+    }
+
+    function deploymentType() {
+      const selected = form.querySelector("input[name='deploymentType']:checked");
+      return selected ? selected.value : "agg";
+    }
+
+    function groveEnabled() {
+      const selected = form.querySelector("input[name='groveMode']:checked");
+      return selected ? selected.value === "enabled" : true;
+    }
+
+    function formatBranch(value) {
+      return value === "disagg" ? "Disagg" : "Agg";
+    }
+
+    function formatGrove(value) {
+      return value ? "Grove Enabled" : "Grove Disabled";
+    }
+
+    function isRuleActive(rule) {
+      return !rule.active || rule.active();
+    }
+
+    function isWholeNumberInput(id, min) {
+      const raw = getValue(id);
+      const value = Number(raw);
+      return raw !== "" && /^\d+$/.test(raw) && Number.isInteger(value) && value >= min;
+    }
+
+    function wholeNumberValue(id, min, fallback) {
+      const raw = getValue(id);
+      const value = Number(raw);
+      if (raw !== "" && Number.isInteger(value) && value >= min) {
+        return value;
+      }
+      if (Number.isFinite(value)) {
+        return Math.max(min, Math.trunc(value));
+      }
+      return fallback;
+    }
+
+    function validateIntegerFields(errors) {
+      Object.entries(integerFieldRules).forEach(([id, rule]) => {
+        if (!isRuleActive(rule)) return;
+        const invalid = !isWholeNumberInput(id, rule.min);
+        setFieldInvalid(id, invalid);
+        if (invalid) {
+          errors.push(rule.label + " must be a whole number greater than or equal to " + rule.min + ".");
+        }
+      });
+    }
+
+    function effectiveMultinodeCount(name) {
+      return getChecked(name + "Multinode") ? wholeNumberValue(name + "MultinodeCount", 2, 2) : 1;
+    }
+
+    function calculatedGpuPerPod(name) {
+      const tp = wholeNumberValue(name + "Tp", 1, 1);
+      const pp = wholeNumberValue(name + "Pp", 1, 1);
+      const multinodeCount = effectiveMultinodeCount(name);
+      return (tp * pp) / multinodeCount;
+    }
+
+    function updateCalculatedGpuFields() {
+      ["worker", "prefill", "decode"].forEach((name) => {
+        setField(name + "GpuPerPod", formatNumber(calculatedGpuPerPod(name)));
+      });
+    }
+
+    function hasLeaderWorkerSplit(name) {
+      return getChecked(name + "Multinode");
+    }
+
+    function validateGpuDivisibility(name, tp, pp, multinodeCount, errors) {
+      const product = tp * pp;
+      const invalid = product % multinodeCount !== 0;
+      setFieldInvalid(name + "GpuPerPod", invalid);
+      if (invalid) {
+        errors.push(componentLabels[name] + " TP * PP (" + product + ") must divide evenly by multinode count (" + multinodeCount + ").");
+      }
+    }
+
+    function componentState(name, errors) {
+      const multinode = getChecked(name + "Multinode");
+      const replicas = wholeNumberValue(name + "Replicas", 0, 0);
+      const multinodeCount = effectiveMultinodeCount(name);
+      const splitLeaderWorker = hasLeaderWorkerSplit(name);
+      const leaderReplicasPerGroup = splitLeaderWorker ? 1 : 0;
+      const workerReplicasPerGroup = splitLeaderWorker ? Math.max(0, multinodeCount - 1) : multinodeCount;
+      const podsPerGroup = leaderReplicasPerGroup + workerReplicasPerGroup;
+      const podEstimate = replicas * podsPerGroup;
+      const tp = wholeNumberValue(name + "Tp", 1, 1);
+      const pp = wholeNumberValue(name + "Pp", 1, 1);
+      const gpuPerPod = calculatedGpuPerPod(name);
+      validateGpuDivisibility(name, tp, pp, multinodeCount, errors);
+
+      return {
+        enabled: true,
+        replicas,
+        multinode: {
+          enabled: multinode,
+          count: multinodeCount
+        },
+        parallelism: {
+          tensor: tp,
+          pipeline: pp
+        },
+        resources: {
+          gpuPerPod,
+          gpuPerPodFormula: "TP * PP / multinodeCount"
+        },
+        podCliques: {
+          leader: {
+            enabled: splitLeaderWorker,
+            replicasPerGroup: leaderReplicasPerGroup,
+            podEstimate: replicas * leaderReplicasPerGroup
+          },
+          worker: {
+            replicasPerGroup: workerReplicasPerGroup,
+            podEstimate: replicas * workerReplicasPerGroup
+          }
+        },
+        derived: {
+          scalingGroupReplicas: replicas,
+          podsPerGroup,
+          podEstimate,
+          gpuEstimate: podEstimate * gpuPerPod
+        }
+      };
+    }
+
+    function frontendState(errors) {
+      const replicas = wholeNumberValue("frontendReplicas", 0, 0);
+      return {
+        enabled: true,
+        replicas,
+        derived: {
+          scalingGroupReplicas: replicas,
+          podsPerGroup: 1,
+          podEstimate: replicas
+        }
+      };
+    }
+
+    function collectInputs() {
+      return {
+        dgd: {
+          groveEnabled: groveEnabled(),
+          deploymentType: deploymentType()
+        },
+        frontend: {
+          replicas: getValue("frontendReplicas")
+        },
+        worker: {
+          replicas: getValue("workerReplicas"),
+          multinode: getChecked("workerMultinode"),
+          multinodeCount: getValue("workerMultinodeCount"),
+          tp: getValue("workerTp"),
+          pp: getValue("workerPp"),
+          calculatedGpuPerPod: formatNumber(calculatedGpuPerPod("worker"))
+        },
+        prefill: {
+          replicas: getValue("prefillReplicas"),
+          multinode: getChecked("prefillMultinode"),
+          multinodeCount: getValue("prefillMultinodeCount"),
+          tp: getValue("prefillTp"),
+          pp: getValue("prefillPp"),
+          calculatedGpuPerPod: formatNumber(calculatedGpuPerPod("prefill"))
+        },
+        decode: {
+          replicas: getValue("decodeReplicas"),
+          multinode: getChecked("decodeMultinode"),
+          multinodeCount: getValue("decodeMultinodeCount"),
+          tp: getValue("decodeTp"),
+          pp: getValue("decodePp"),
+          calculatedGpuPerPod: formatNumber(calculatedGpuPerPod("decode"))
+        }
+      };
+    }
+
+    function buildPayload() {
+      const errors = [];
+      clearValidationStyles();
+      validateIntegerFields(errors);
+      const type = deploymentType();
+      const components = {
+        frontend: frontendState(errors)
+      };
+
+      if (type === "agg") {
+        components.worker = componentState("worker", errors);
+      } else {
+        components.prefill = componentState("prefill", errors);
+        components.decode = componentState("decode", errors);
+      }
+
+      const componentNames = Object.keys(components);
+      const totalReplicas = componentNames.reduce((sum, name) => sum + components[name].replicas, 0);
+      const totalPods = componentNames.reduce((sum, name) => sum + components[name].derived.podEstimate, 0);
+      const totalGpu = componentNames.reduce((sum, name) => sum + (components[name].derived.gpuEstimate || 0), 0);
+
+      return {
+        schemaVersion: "dynamo-dgd-config-flow/v0.1",
+        updatedAt: new Date().toISOString(),
+        inputs: collectInputs(),
+        dgd: {
+          groveEnabled: groveEnabled(),
+          deploymentType: type
+        },
+        components,
+        derived: {
+          configuredComponents: componentNames,
+          totalReplicas,
+          totalPodEstimate: totalPods,
+          totalGpuEstimate: totalGpu,
+          assumptions: [
+            "Frontend pod estimate equals frontend replicas.",
+            "Grove enabled mode renders PodCliqueSet, PodCliques, and PodCliqueScalingGroups.",
+            "Grove disabled mode renders the same replica math as direct pods without PodClique resources.",
+            "Multinode components create one leader unit and one worker unit per component replica.",
+            "When multinode is enabled, multinode count is the total of one leader plus worker replicas.",
+            "Worker replicas per scaling-group replica equal multinode count minus one when leader/worker split is enabled.",
+            "GPU per pod is calculated as TP * PP / multinode count and must be a whole number."
+          ]
+        },
+        validation: {
+          valid: errors.length === 0,
+          errors
+        }
+      };
+    }
+
+    function setBranchVisibility() {
+      const type = deploymentType();
+      document.querySelectorAll("[data-branch]").forEach((section) => {
+        section.classList.toggle("branch-hidden", section.dataset.branch !== type);
+      });
+    }
+
+    function setMultinodeVisibility() {
+      ["worker", "prefill", "decode"].forEach((name) => {
+        const visible = getChecked(name + "Multinode");
+        const countField = name + "MultinodeCount";
+        if (visible && !isWholeNumberInput(countField, 2)) {
+          setField(countField, 2);
+        }
+        document.querySelectorAll("[data-multinode-count='" + name + "']").forEach((field) => {
+          field.classList.toggle("conditional-hidden", !visible);
+        });
+      });
+    }
+
+    function renderMetrics(payload) {
+      const branch = formatBranch(payload.dgd.deploymentType);
+      document.getElementById("metricBranch").textContent = branch;
+      document.getElementById("metricGrove").textContent = payload.dgd.groveEnabled ? "Enabled" : "Disabled";
+      document.getElementById("metricGpu").textContent = formatNumber(payload.derived.totalGpuEstimate);
+      document.getElementById("metricReplicas").textContent = String(payload.derived.totalReplicas);
+      document.getElementById("metricPods").textContent = String(payload.derived.totalPodEstimate);
+
+      componentRows.innerHTML = payload.derived.configuredComponents.map((name) => {
+        const component = payload.components[name];
+        const leaderCount = component.podCliques?.leader?.enabled ? component.podCliques.leader.replicasPerGroup : "-";
+        const workerCount = component.podCliques?.worker ? component.podCliques.worker.replicasPerGroup : "-";
+        const gpuPerPod = component.resources ? formatNumber(component.resources.gpuPerPod) : "-";
+        const totalGpu = typeof component.derived.gpuEstimate === "number" ? formatNumber(component.derived.gpuEstimate) : "-";
+        return [
+          "<tr>",
+          "<td>" + componentLabels[name] + "</td>",
+          "<td>" + component.replicas + "</td>",
+          "<td>" + component.derived.podEstimate + "</td>",
+          "<td>" + leaderCount + "</td>",
+          "<td>" + workerCount + "</td>",
+          "<td>" + gpuPerPod + "</td>",
+          "<td>" + totalGpu + "</td>",
+          "</tr>"
+        ].join("");
+      }).join("");
+
+      validationMessage.className = "message";
+      if (payload.validation.valid) {
+        validationMessage.textContent = "Ready";
+      } else {
+        validationMessage.classList.add("danger");
+        const firstError = payload.validation.errors[0] || "Check highlighted fields.";
+        const more = payload.validation.errors.length > 1 ? " +" + (payload.validation.errors.length - 1) + " more" : "";
+        validationMessage.textContent = firstError + more;
+      }
+    }
+
+    function renderPodBoxes(count) {
+      const shown = Math.min(count, 8);
+      const boxes = [];
+      for (let index = 0; index < shown; index += 1) {
+        boxes.push("<span class='pod-box'>Pod</span>");
+      }
+      if (count > shown) {
+        boxes.push("<span class='pod-box more'>+" + (count - shown) + "</span>");
+      }
+      if (count === 0) {
+        boxes.push("<span class='pod-box more'>0</span>");
+      }
+      return boxes.join("");
+    }
+
+    function renderPodCliqueCard(name, meta, pods, className) {
+      return [
+        "<div class='podclique-card " + className + "'>",
+        "<div class='podclique-name'>" + name + "</div>",
+        "<div class='podclique-meta'>" + meta + "</div>",
+        "<div class='pod-boxes'>" + renderPodBoxes(pods) + "</div>",
+        "</div>"
+      ].join("");
+    }
+
+    function renderScalingGroup(name, component, leaderName, workerName, leaderClass, workerClass) {
+      const replicaCount = component.derived.scalingGroupReplicas;
+      const shown = Math.min(replicaCount, 3);
+      const leaderPods = component.podCliques.leader.replicasPerGroup;
+      const workerPods = component.podCliques.worker.replicasPerGroup;
+      const rows = [];
+
+      for (let index = 0; index < shown; index += 1) {
+        rows.push([
+          "<div class='replica-row'>",
+          "<div class='replica-label'>Replica " + (index + 1) + "</div>",
+          "<div class='podclique-grid'>",
+          renderPodCliqueCard(leaderName, "Leader replicas = " + leaderPods + ", GPU/pod = " + formatNumber(component.resources.gpuPerPod), leaderPods, leaderClass),
+          renderPodCliqueCard(workerName, "Worker replicas = " + workerPods + ", GPU/pod = " + formatNumber(component.resources.gpuPerPod), workerPods, workerClass),
+          "</div>",
+          "</div>"
+        ].join(""));
+      }
+
+      if (replicaCount > shown) {
+        rows.push("<div class='replica-label'>+" + (replicaCount - shown) + " more scaling-group replica(s)</div>");
+      }
+
+      return [
+        "<div class='scaling-group'>",
+        "<div class='topology-title'>PodCliqueScalingGroup: " + name + "<span>replicas = " + replicaCount + "</span></div>",
+        rows.join(""),
+        "</div>"
+      ].join("");
+    }
+
+    function renderComponentTopology(name, component, singleName, leaderName, workerName, singleClass, leaderClass, workerClass) {
+      if (component.podCliques.leader.enabled) {
+        return renderScalingGroup(name, component, leaderName, workerName, leaderClass, workerClass);
+      }
+      return renderPodCliqueCard(
+        singleName,
+        name + " replicas = " + component.replicas + ", pods = " + component.derived.podEstimate + ", GPU/pod = " + formatNumber(component.resources.gpuPerPod),
+        component.derived.podEstimate,
+        singleClass
+      );
+    }
+
+    function renderDirectGroup(name, component, setName, leaderName, workerName, leaderClass, workerClass) {
+      const replicaCount = component.derived.scalingGroupReplicas;
+      const shown = Math.min(replicaCount, 3);
+      const leaderPods = component.podCliques.leader.replicasPerGroup;
+      const workerPods = component.podCliques.worker.replicasPerGroup;
+      const rows = [];
+
+      for (let index = 0; index < shown; index += 1) {
+        rows.push([
+          "<div class='replica-row'>",
+          "<div class='replica-label'>Replica " + (index + 1) + "</div>",
+          "<div class='podclique-grid'>",
+          renderPodCliqueCard(leaderName, "Leader pods = " + leaderPods + ", GPU/pod = " + formatNumber(component.resources.gpuPerPod), leaderPods, leaderClass + " direct-pods"),
+          renderPodCliqueCard(workerName, "Worker pods = " + workerPods + ", GPU/pod = " + formatNumber(component.resources.gpuPerPod), workerPods, workerClass + " direct-pods"),
+          "</div>",
+          "</div>"
+        ].join(""));
+      }
+
+      if (replicaCount > shown) {
+        rows.push("<div class='replica-label'>+" + (replicaCount - shown) + " more replica(s)</div>");
+      }
+
+      return [
+        "<div class='scaling-group'>",
+        "<div class='topology-title'>" + setName + "<span>replicas = " + replicaCount + "</span></div>",
+        rows.join(""),
+        "</div>"
+      ].join("");
+    }
+
+    function renderDirectComponentTopology(name, component, singleName, setName, leaderName, workerName, singleClass, leaderClass, workerClass) {
+      if (component.podCliques.leader.enabled) {
+        return renderDirectGroup(name, component, setName, leaderName, workerName, leaderClass, workerClass);
+      }
+      return renderPodCliqueCard(
+        singleName,
+        name + " replicas = " + component.replicas + ", pods = " + component.derived.podEstimate + ", GPU/pod = " + formatNumber(component.resources.gpuPerPod),
+        component.derived.podEstimate,
+        singleClass + " direct-pods"
+      );
+    }
+
+    function renderGroveEnabledTopology(payload) {
+      const frontend = payload.components.frontend;
+      const pieces = [
+        "<div class='topology-set'>",
+        "<div class='topology-title'>PodCliqueSet<span>" + formatBranch(payload.dgd.deploymentType) + "</span></div>",
+        renderPodCliqueCard("PodClique-A", "Frontend/Routing replicas = " + frontend.replicas, frontend.replicas, "frontend")
+      ];
+
+      if (payload.dgd.deploymentType === "agg") {
+        const worker = payload.components.worker;
+        pieces.push(renderComponentTopology("Decode", worker, "PodClique-B", "PodClique-B", "PodClique-C", "decode-worker", "decode-leader", "decode-worker"));
+      } else {
+        pieces.push(renderComponentTopology("Prefill", payload.components.prefill, "PodClique-B", "PodClique-B", "PodClique-C", "prefill-worker", "prefill-leader", "prefill-worker"));
+        pieces.push(renderComponentTopology("Decode", payload.components.decode, "PodClique-D", "PodClique-D", "PodClique-E", "decode-worker", "decode-leader", "decode-worker"));
+      }
+
+      pieces.push("</div>");
+      topologyView.innerHTML = pieces.join("");
+    }
+
+    function renderGroveDisabledTopology(payload) {
+      const frontend = payload.components.frontend;
+      const pieces = [
+        "<div class='topology-set grove-disabled'>",
+        "<div class='topology-title'>DGD Deployments<span>" + formatBranch(payload.dgd.deploymentType) + "</span></div>",
+        renderPodCliqueCard("Frontend Deployment", "Frontend replicas = " + frontend.replicas, frontend.replicas, "frontend direct-pods")
+      ];
+
+      if (payload.dgd.deploymentType === "agg") {
+        const worker = payload.components.worker;
+        pieces.push(renderDirectComponentTopology("Decode", worker, "Decode Deployment", "Decode LeaderWorkerSet", "Decode Leader", "Decode Worker", "decode-worker", "decode-leader", "decode-worker"));
+      } else {
+        pieces.push(renderDirectComponentTopology("Prefill", payload.components.prefill, "Prefill Deployment", "Prefill LeaderWorkerSet", "Prefill Leader", "Prefill Worker", "prefill-worker", "prefill-leader", "prefill-worker"));
+        pieces.push(renderDirectComponentTopology("Decode", payload.components.decode, "Decode Deployment", "Decode LeaderWorkerSet", "Decode Leader", "Decode Worker", "decode-worker", "decode-leader", "decode-worker"));
+      }
+
+      pieces.push("</div>");
+      topologyView.innerHTML = pieces.join("");
+    }
+
+    function renderTopology(payload) {
+      topologyBranch.textContent = formatGrove(payload.dgd.groveEnabled) + " / " + formatBranch(payload.dgd.deploymentType);
+      if (payload.dgd.groveEnabled) {
+        renderGroveEnabledTopology(payload);
+      } else {
+        renderGroveDisabledTopology(payload);
+      }
+    }
+
+    function refresh() {
+      setBranchVisibility();
+      setMultinodeVisibility();
+      updateCalculatedGpuFields();
+      const payload = buildPayload();
+      renderMetrics(payload);
+      renderTopology(payload);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(payload.inputs));
+      savedState.textContent = "Saved";
+      return payload;
+    }
+
+    function loadInputs(inputs) {
+      if (!inputs) return;
+      const grove = inputs.dgd?.groveEnabled === false ? "disabled" : "enabled";
+      const groveRadio = form.querySelector("input[name='groveMode'][value='" + grove + "']");
+      if (groveRadio) groveRadio.checked = true;
+
+      const deployment = inputs.dgd?.deploymentType === "disagg" ? "disagg" : "agg";
+      const radio = form.querySelector("input[name='deploymentType'][value='" + deployment + "']");
+      if (radio) radio.checked = true;
+
+      setField("frontendReplicas", inputs.frontend?.replicas ?? 1);
+
+      ["worker", "prefill", "decode"].forEach((name) => {
+        const data = inputs[name] || {};
+        setField(name + "Replicas", data.replicas ?? 1);
+        setField(name + "Multinode", data.multinode ?? false);
+        setField(name + "MultinodeCount", data.multinodeCount ?? 2);
+        setField(name + "Tp", data.tp ?? 1);
+        setField(name + "Pp", data.pp ?? 1);
+      });
+    }
+
+    function tryLoadStoredInputs() {
+      try {
+        const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null");
+        loadInputs(stored);
+      } catch (error) {
+        localStorage.removeItem(STORAGE_KEY);
+      }
+    }
+
+    function applyIntegerInputAttributes() {
+      Object.entries(integerFieldRules).forEach(([id, rule]) => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.setAttribute("min", String(rule.min));
+        el.setAttribute("step", "1");
+        el.setAttribute("inputmode", "numeric");
+      });
+    }
+
+    form.addEventListener("input", () => {
+      savedState.textContent = "Saving";
+      refresh();
+    });
+
+    form.addEventListener("change", () => {
+      savedState.textContent = "Saving";
+      refresh();
+    });
+
+    document.getElementById("resetForm").addEventListener("click", () => {
+      localStorage.removeItem(STORAGE_KEY);
+      loadInputs(null);
+      form.reset();
+      refresh();
+    });
+
+    applyIntegerInputAttributes();
+    tryLoadStoredInputs();
+    refresh();
+  </script>
+</body>
+</html>

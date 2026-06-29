@@ -1,0 +1,169 @@
+# SPDX-FileCopyrightText: Copyright (c) 2025-2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+apiVersion: nvidia.com/v1alpha1
+kind: DynamoGraphDeployment
+metadata:
+  name: qwen3-32b-fp8-vllm
+  namespace: <namespace>
+spec:
+  backendFramework: vllm
+  pvcs:
+    - name: <pvc-name>
+      create: false
+  services:
+    Frontend:
+      componentType: frontend
+      volumeMounts:
+        - name: <pvc-name>
+          mountPoint: /opt/models
+      extraPodSpec:
+        mainContainer:
+          image: nvcr.io/nvidia/ai-dynamo/vllm-runtime:1.2.0
+          workingDir: /workspace/examples/backends/vllm
+      envs:
+        - name: HF_HOME
+          value: /opt/models
+      replicas: 1
+    pw:
+      multinode:
+        nodeCount: 2
+      componentType: worker
+      subComponentType: decode
+      envFromSecret: hf-token-secret
+      volumeMounts:
+        - name: <pvc-name>
+          mountPoint: /opt/models
+      sharedMemory:
+        size: 40Gi
+      extraPodSpec:
+        affinity:
+          podAffinity:
+            preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                  - key: nvidia.com/dynamo-component-type
+                    operator: In
+                    values:
+                    - worker
+                topologyKey: kubernetes.io/hostname
+        mainContainer:
+          env:
+            - name: SERVED_MODEL_NAME
+              value: "Qwen/Qwen3-32B-FP8"
+            - name: MODEL_PATH
+              value: "/opt/models/Qwen3-30B-A3B-Instruct-2507"
+            - name: HF_HOME
+              value: /opt/models
+            - name: UCX_TLS
+              value: "rc_x,rc,cuda_copy,cuda_ipc,shm,tcp,self"
+            - name: UCX_NET_DEVICES
+              value: "mlx5_0:1,mlx5_3:1,mlx5_4:1,mlx5_5:1,mlx5_6:1,mlx5_9:1,mlx5_10:1,mlx5_11:1"
+            - name: UCX_RNDV_SCHEME
+              value: "get_zcopy"
+            - name: UCX_RNDV_THRESH
+              value: "0"
+            - name: UCX_IB_ADDR_TYPE
+              value: "ib_local"
+          args:
+          - |
+            ulimit -l unlimited && python3 -m dynamo.vllm \
+              --model $MODEL_PATH \
+              --served-model-name $SERVED_MODEL_NAME \
+              --tensor-parallel-size 2 \
+              --pipeline-parallel-size 2 \
+              --disaggregation-mode prefill \
+              --kv-transfer-config '{"kv_connector":"NixlConnector","kv_role":"kv_both"}' \
+              --gpu-memory-utilization 0.90 \
+              --max-model-len 8192 \
+              --no-enable-prefix-caching \
+              --block-size 128
+          command:
+          - /bin/sh
+          - -c
+          image: nvcr.io/nvidia/ai-dynamo/vllm-runtime:1.2.0
+          workingDir: /workspace/examples/backends/vllm
+          securityContext:
+            runAsUser: 0
+      replicas: 2
+      resources:
+        limits:
+          gpu: "2"
+          custom:
+            rdma/rdma_shared_mlx5: "1"
+        requests:
+          gpu: "2"
+          custom:
+            rdma/rdma_shared_mlx5: "1"
+    dw:
+      multinode:
+        nodeCount: 2
+      componentType: worker
+      subComponentType: decode
+      envFromSecret: hf-token-secret
+      volumeMounts:
+        - name: <pvc-name>
+          mountPoint: /opt/models
+      sharedMemory:
+        size: 40Gi
+      extraPodSpec:
+        affinity:
+          podAffinity:
+            preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                  - key: nvidia.com/dynamo-component-type
+                    operator: In
+                    values:
+                    - worker
+                topologyKey: kubernetes.io/hostname
+        mainContainer:
+          env:
+            - name: SERVED_MODEL_NAME
+              value: "Qwen/Qwen3-32B-FP8"
+            - name: MODEL_PATH
+              value: "/opt/models/Qwen3-30B-A3B-Instruct-2507"
+            - name: HF_HOME
+              value: /opt/models
+            - name: UCX_TLS
+              value: "rc_x,rc,cuda_copy,cuda_ipc,shm,tcp,self"
+            - name: UCX_NET_DEVICES
+              value: "mlx5_0:1,mlx5_3:1,mlx5_4:1,mlx5_5:1,mlx5_6:1,mlx5_9:1,mlx5_10:1,mlx5_11:1"
+            - name: UCX_RNDV_SCHEME
+              value: "get_zcopy"
+            - name: UCX_RNDV_THRESH
+              value: "0"
+            - name: UCX_IB_ADDR_TYPE
+              value: "ib_local"
+          args:
+          - |
+            ulimit -l unlimited && python3 -m dynamo.vllm \
+              --model $MODEL_PATH \
+              --served-model-name $SERVED_MODEL_NAME \
+              --tensor-parallel-size 2 \
+              --pipeline-parallel-size 2 \
+              --kv-transfer-config '{"kv_connector":"NixlConnector","kv_role":"kv_both"}' \
+              --gpu-memory-utilization 0.90 \
+              --max-model-len 8192 \
+              --no-enable-prefix-caching \
+              --block-size 128
+          command:
+          - /bin/sh
+          - -c
+          image: nvcr.io/nvidia/ai-dynamo/vllm-runtime:1.2.0
+          workingDir: /workspace/examples/backends/vllm
+          securityContext:
+            runAsUser: 0
+      replicas: 2
+      resources:
+        limits:
+          gpu: "2"
+          custom:
+            rdma/rdma_shared_mlx5: "1"
+        requests:
+          gpu: "2"
+          custom:
+            rdma/rdma_shared_mlx5: "1"
